@@ -14,6 +14,34 @@ def setup_database():
                         program TEXT,
                         scholarship TEXT
                     )''')
+      # Applications table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Applications (
+                        ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        StudentID INTEGER,
+                        ScholarshipID INTEGER NULL,
+                        Type TEXT CHECK(Type IN ('Admission', 'Scholarship')),
+                        Status TEXT CHECK(Status IN ('Submitted', 'Under Review', 'Approved', 'Rejected')) DEFAULT 'Submitted',
+                        SubmissionDate TEXT NOT NULL,
+                        FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+                        FOREIGN KEY (ScholarshipID) REFERENCES Scholarships(ScholarshipID)
+                    )''')
+
+    # Scholarships table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Scholarships (
+                        ScholarshipID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        EligibilityCriteria TEXT,
+                        FundingAmount REAL NOT NULL
+                    )''')
+
+    # Administrators table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Administrators (
+                        AdminID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        Email TEXT UNIQUE NOT NULL,
+                        Role TEXT NOT NULL
+                    )''')
+                    
     conn.commit()
     conn.close()
 
