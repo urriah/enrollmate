@@ -14,34 +14,76 @@ def setup_database():
                         program TEXT,
                         scholarship TEXT
                     )''')
-      # Applications table
-    cursor.execute('''CREATE TABLE IF NOT EXISTS Applications (
-                        ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        StudentID INTEGER,
-                        ScholarshipID INTEGER NULL,
-                        Type TEXT CHECK(Type IN ('Admission', 'Scholarship')),
-                        Status TEXT CHECK(Status IN ('Submitted', 'Under Review', 'Approved', 'Rejected')) DEFAULT 'Submitted',
-                        SubmissionDate TEXT NOT NULL,
-                        FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
-                        FOREIGN KEY (ScholarshipID) REFERENCES Scholarships(ScholarshipID)
-                    )''')
-
-    # Scholarships table
     cursor.execute('''CREATE TABLE IF NOT EXISTS Scholarships (
-                        ScholarshipID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Name TEXT NOT NULL,
-                        EligibilityCriteria TEXT,
-                        FundingAmount REAL NOT NULL
-                    )''')
+    scholarshipID INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    criteria TEXT NOT NULL,
+    status TEXT CHECK(status IN ('active', 'inactive')) NOT NULL
+)''')
 
-    # Administrators table
-    cursor.execute('''CREATE TABLE IF NOT EXISTS Administrators (
-                        AdminID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Name TEXT NOT NULL,
-                        Email TEXT UNIQUE NOT NULL,
-                        Role TEXT NOT NULL
-                    )''')
-                    
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Applicants (
+    applicantID INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    number TEXT(15),
+    birthdate DATE,
+    address TEXT,
+    status TEXT CHECK(status IN ('active', 'inactive')) NOT NULL
+)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Applicants_Scholarships (
+    applicants_scholarshipID INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicantID INTEGER NOT NULL,
+    studentID INTEGER NOT NULL,
+    scholarshipID INTEGER NOT NULL,
+    status TEXT CHECK(status IN ('approved', 'pending', 'rejected')) NOT NULL,
+    FOREIGN KEY (applicantID) REFERENCES Applicants(applicantID),
+    FOREIGN KEY (studentID) REFERENCES Students(StudentID),
+    FOREIGN KEY (scholarshipID) REFERENCES Scholarships(scholarshipID)
+)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Applications (
+    ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicantID INTEGER NOT NULL,
+    programID INTEGER NOT NULL,
+    date DATE NOT NULL,
+    status TEXT CHECK(status IN ('submitted', 'under review', 'approved', 'rejected')) NOT NULL,
+    FOREIGN KEY (applicantID) REFERENCES Applicants(applicantID),
+    FOREIGN KEY (programID) REFERENCES Programs(ProgramID)
+)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Admins (
+    adminID INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT CHECK(role IN ('admin', 'staff', 'supervisor')) NOT NULL
+)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Documents (
+    DocumentsID INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicantID INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    date DATE NOT NULL,
+    path TEXT NOT NULL,
+    FOREIGN KEY (applicantID) REFERENCES Applicants(applicantID)
+)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Programs (
+    ProgramID INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    departmentID INTEGER NOT NULL,
+    unit INTEGER NOT NULL,
+    requirements TEXT,
+    FOREIGN KEY (departmentID) REFERENCES Departments(departmentID)
+)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Departments (
+    departmentID INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    faculty TEXT NOT NULL
+)''')
+
     conn.commit()
     conn.close()
 
